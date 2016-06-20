@@ -53,6 +53,7 @@ class AwesomeProject extends Component {
         );
     }
 
+    //渲染movie
     renderMovie(movie) {
         return (
             <View style={styles.container}>
