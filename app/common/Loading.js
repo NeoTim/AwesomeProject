@@ -22,6 +22,7 @@ export default class Loading extends React.Component {
     }
 }
 
+
 const styles = StyleSheet.create({
     loading: {
         backgroundColor: 'gray',
