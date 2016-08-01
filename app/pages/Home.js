@@ -32,15 +32,57 @@ let isLoading = false;
 class Home extends Component {
     constructor(props){
         super(props);
-
+        this._renderRow = this._renderRow.bind(this);
+        this.state = {
+            dataSource:new ListView.DataSource({
+                rowHasChanged:(row1,row2)=> row1 != row2
+            })
+        }
     }
 
     componentDidMount(){
-
+        InteractionManager.runAfterInteractions(()=>{
+            const {dispatch} = this.props;
+            dispatch(home(tag,offset,limit,isLoadMore,isRefreshing,isLoading));
+        });
     }
 
     render(){
+        const {Home, rowData } = this.props;
+        tag  = rowData;
+        let homeList = Home.homeList;
+        let titleName = '最新';
+        return (
+            <View >
+                <HeaderView
+                    titleView={titleName}
+                    leftIcon ={tag ? 'angle-left' : null}
+                    ></HeaderView>
+                {Home.isLoading ? <Loading /> :
+                    <ListView
+                        dataSource={this.state.dataSource.cloneWithRows(homeList)}
+                        renderRow = {this._renderRow}
+                        contentContainerStyle={styles.list}
+                        enableEmpathScetions={true}
+                        initialListSize={10}
+                        onScroll={this._onScroll}
+                        onEndReached={this._onEndEach.bind(this)}
+                        onEndReachedThreshold={10}
+                        renderFooter={this._renderFooter.bind(this)}
+                        style={styles.listView}
+                        refreshControl={
+                            <RefreshControl
+                            refreshing={Home.isRefreshing}
+                            onRefresh={this._onRefresh.bind(this)}
+                            title="正在加载中....."
+                            color="#ccc"
+                            />
+                        }
+                        ></ListView>
 
+                }
+            </View>
+        );
     }
 
     _renderRow(rowData){
@@ -51,7 +93,7 @@ class Home extends Component {
                     onPress={this._onPressFeedItem.bind(this,rowData)}
                     >
                     <Image
-                        source={{uri: 'http://img.hb.aicdn.com/' + rowDate.file.key + '_fw236' }}
+                        source={{uri: 'http://img.hb.aicdn.com/' + rowData.file.key + '_fw236' }}
                         style={styles.thumbnail}
                     />
                 </TouchableOpacity>
@@ -60,7 +102,49 @@ class Home extends Component {
     }
 
     _onPressFeedItem(rowData){
+        InteractionManager.runAfterInteractions(()=>{
+            this.props.navigator.push({
+                name:   'HomeDetail',
+                component:  HomeDetail,
+                sceneConfig:    Navigator.SceneConfigs.FloatFromBottom,
+                passProps:{
+                    rowData:rowData
+                }
+            });
+        });
+    }
+    _renderFooter(){
+        const {home} = this.props;
+        if(home.isLoadMore){
+            return <LoadMoreFooter />
+        }
+    }
 
+    _onScroll(){
+        if(!isLoadMore){
+            isLoadMore = true;
+        }
+    }
+
+    _onRefresh(){
+        if(isLoadMore){
+            const {dispatch , home } = this.props;
+            isLoadMore = true;
+            isRefreshing = true;
+            dispatch(home('','',limit,isLoadMore,isRefreshing,isLoading));
+        }
+    }
+
+    //上拉加载
+    _onEndEach(){
+        InteractionManager.runAfterInteractions(()=>{
+            const {dispatch, home} = this.props;
+            let homeList = home.HomeList;
+            isLoadMore = true;
+            isLoading = true;
+            offset = homeList[homeList.length - 1].seq;
+            dispatch(home(tag,offset,limit,isLoadMore,isRefreshing,isLoading));
+        });
     }
 }
 
