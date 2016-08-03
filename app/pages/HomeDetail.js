@@ -12,12 +12,11 @@ export default class HomeDetail extends Component{
     render(){
         const {rowData} = this.props;
         return (
-            <View
+            <View>
                 <Image
                     source={{uri: 'http://img.hb.aicdn.com/' + rowDate.file.key + '_fw658' }}
                     style={styles.thumbnail}
                     />
-                >
             </View>
         );
     }
